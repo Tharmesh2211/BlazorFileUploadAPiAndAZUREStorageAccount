@@ -1,0 +1,47 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http
+@using System.Threading.Tasks
+@rendermode InteractiveServer
+
+<h3>File Upload</h3>
+
+<InputFile OnChange="@HandleFileChange" />
+
+<button @onclick="UploadFile">Upload</button>
+
+@code {
+    private IBrowserFile selectedFile;
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private async Task UploadFile()
+    {
+        try
+        {
+            using (var httpClient = new HttpClient())
+            using (var formData = new MultipartFormDataContent())
+            {
+                formData.Add(new StreamContent(selectedFile.OpenReadStream()), "file", selectedFile.Name);
+
+                var response = await httpClient.PostAsync("https://localhost:7233/api/AzureFileStore/UploadFile", formData);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("File uploaded successfully");
+                }
+                else
+                {
+                    Console.WriteLine($"Error: {response.StatusCode}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
