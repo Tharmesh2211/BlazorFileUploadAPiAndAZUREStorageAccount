@@ -1,8 +1,5 @@
-﻿using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.AspNetCore.Mvc;
 using StorageAccount.Application.IServices;
-using StorageAccount.Domain.Model;
 
 namespace StorageAccount.Controllers
 {
@@ -10,9 +7,9 @@ namespace StorageAccount.Controllers
     [ApiController]
     public class AzureFileStoreController : ControllerBase
     {
-       private readonly IAzureFileStore _fileStore;
+       private readonly IFileUpload _fileStore;
         public static IWebHostEnvironment _hostEnvironment;
-        public AzureFileStoreController(IAzureFileStore fileStore, IWebHostEnvironment hostEnvironment)
+        public AzureFileStoreController(IFileUpload fileStore, IWebHostEnvironment hostEnvironment)
         {
             _fileStore = fileStore;
             _hostEnvironment = hostEnvironment;
@@ -24,8 +21,24 @@ namespace StorageAccount.Controllers
         {
             try
             {
-                var result = await _fileStore.UploadFile(file);
-                return Ok(result);
+                if (_fileStore.CreateDirectory(file))
+                {
+                    _fileStore.FileDismantle();
+
+                    if (await _fileStore.UploadFileInDirectory())
+                    {
+                        if (await _fileStore.UploadFileInAzureStorage())
+                        {
+                            if (await _fileStore.UploadFileInDB(file))
+                            {
+                                return Ok("File Uploaded in everywhere!");
+                            }
+                        }
+
+                    }
+
+                }
+                return Ok("Failed to upload file!");
               
             }
             catch (Exception ex)

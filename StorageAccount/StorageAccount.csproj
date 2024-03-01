@@ -13,7 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StorageAccount.Application\StorageAccount.Application.csproj" />
+    <ProjectReference Include="..\StorageAccount.Domain\StorageAccount.Domain.csproj" />
     <ProjectReference Include="..\StorageAccount.Infrastructure\StorageAccount.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UploadedFiles\" />
   </ItemGroup>
 
 </Project>
