@@ -1,0 +1,101 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@using System.Net.Http
+@using System.Text.Json
+@using System.Net.Http.Headers
+@using System.Threading.Tasks
+@using System.Text.Json.Serialization
+@inject IJSRuntime JsRuntime
+@rendermode InteractiveServer
+
+<h3>File Upload</h3>
+
+<InputFile OnChange="@HandleFileChange" name="file" />
+@if (selectedFile != null)
+{
+    <p>Selected File: @selectedFile.Name</p>
+    <button @onclick="UploadFile">Upload</button>
+}
+
+@code {
+    
+    
+    
+    private IBrowserFile? selectedFile;
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+
+    private async Task UploadFile()
+    {
+        try
+        {
+
+            IFormFile formFile = await ConvertToIFormFileAsync(selectedFile);
+
+            string fileContent = await ConvertIFormFileToStringAsync(formFile);
+          
+            HttpClient httpClient = new HttpClient();
+
+            var response = await httpClient.PostAsJsonAsync("https://localhost:7233/api/AzureFileStore/UploadFile", fileContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("File uploaded successfully");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    public class FileUpload
+    {
+        [JsonPropertyName("formFile")]
+        public static IFormFile? FormFile { get; set; }
+    }
+
+    public static async Task<IFormFile> ConvertToIFormFileAsync(IBrowserFile browserFile)
+    {
+        using (var memoryStream = new MemoryStream())
+        {
+            await browserFile.OpenReadStream().CopyToAsync(memoryStream);
+            var fileName = browserFile.Name;
+            var contentDisposition = $"form-data; name=\"file\"; filename=\"{fileName}\"";
+            var contentType = browserFile.ContentType ?? "application/octet-stream";
+
+            memoryStream.Position = 0; // Reset the position to the beginning of the stream
+
+            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, null, fileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = contentType,
+                    ContentDisposition = contentDisposition
+                };
+
+            return formFile;
+        }
+    }
+
+
+    public static async Task<string> ConvertIFormFileToStringAsync(IFormFile formFile)
+    {
+        using (var streamReader = new StreamReader(formFile.OpenReadStream()))
+        {
+            return await streamReader.ReadToEndAsync();
+        }
+    }
+
+
+
+
+}

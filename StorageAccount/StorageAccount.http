@@ -1,0 +1,6 @@
+@StorageAccount_HostAddress = http://localhost:5290
+
+GET {{StorageAccount_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
