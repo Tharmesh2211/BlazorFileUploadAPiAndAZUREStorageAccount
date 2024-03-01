@@ -18,7 +18,7 @@ namespace StorageAccount.Infrastructure.Repositories
             _hostEnvironment = hostEnvironment;
         }
 
-        public  async Task<string> UploadFile(IFormFile file)
+        public async Task<string> UploadFile(IFormFile file)
         {
             try
             {
@@ -40,18 +40,19 @@ namespace StorageAccount.Infrastructure.Repositories
                 {
                     file.CopyTo(stream);
                 }
-                await UploadFileAsync(filePath, uniqueFileName);
+                var result = await UploadFileAsync(filePath, uniqueFileName);
 
                 return ($"File uploaded successfully. Path: {filePath}");
             }
             catch (Exception ex)
             {
-                return ( $"Internal server error: {ex.Message}");
+                return ($"Internal server error: {ex.Message}");
             }
         }
-   
 
-        public async Task<ActionResult> UploadFileAsync(string filePath, string uniqueFileName)
+
+
+        public async Task<string> UploadFileAsync(string filePath, string uniqueFileName)
         {
             try
             {
@@ -65,12 +66,13 @@ namespace StorageAccount.Infrastructure.Repositories
                     Console.WriteLine(stream);
                 }
 
-                return new ContentResult { };
+                return "Successfully stored in Azure Storage Account";
             }
             catch (Exception ex)
             {
-                return new BadRequestObjectResult(ex);
+                return ex.ToString();
             }
         }
+
     }
 }
