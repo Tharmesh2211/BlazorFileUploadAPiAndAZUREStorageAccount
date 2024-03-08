@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using StorageAccount.Application.IServices;
+using StorageAccount.Application.IServices.AzureService;
+using StorageAccount.Application.IServices.DataBaseService;
 using StorageAccount.Infrastructure.DataContext;
 using StorageAccount.Infrastructure.Repositories;
+using StorageAccount.Infrastructure.Repositories.AzureStorage;
+using StorageAccount.Infrastructure.Repositories.DataBaseStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +17,9 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("connectDB")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IFileUpload, AzureFileStoreRepository>();
+builder.Services.AddScoped<IAzureService, AzureStorageRepository>();
+builder.Services.AddScoped<IDataBaseService, AzureDataBaseRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
